@@ -20,7 +20,8 @@ namespace SchoolAPI.Controllers
         [HttpPost]
         public IActionResult Login(Users users)
         {
-            UserRefreshTokens tokens = _schoolContext.UserRefreshTokens.Where(x => x.UserName == users.Name && x.Password == MD5.Create(users.Password).ToString()).FirstOrDefault();
+            string passHash = CreateMD5(users.Password).ToLower();
+            UserRefreshTokens tokens = _schoolContext.UserRefreshTokens.Where(x => x.UserName == users.Name && x.Password == passHash).FirstOrDefault();
             if (tokens == null)
             {
                 return Unauthorized("Incorrect username or password!");
@@ -28,7 +29,7 @@ namespace SchoolAPI.Controllers
             var token = _repository.Authenticate(users);
             tokens.RefreshToken = token.RefreshToken;
             _schoolContext.Entry(tokens).State = EntityState.Modified;
-            _schoolContext.SaveChangesAsync();
+            _schoolContext.SaveChanges();
             return Ok(token);
         }
 
@@ -49,9 +50,20 @@ namespace SchoolAPI.Controllers
                 return Unauthorized("Invalid attempt!");
             }
             saveRefreshToken.RefreshToken = token.RefreshToken;
-            _schoolContext.Entry(tokens).State = EntityState.Modified;
-            _schoolContext.SaveChangesAsync();
+            _schoolContext.Entry(saveRefreshToken).State = EntityState.Modified;
+            _schoolContext.SaveChanges();
             return Ok(token);
+        }
+
+        private string CreateMD5(string input)
+        {
+            using (System.Security.Cryptography.MD5 md5 = System.Security.Cryptography.MD5.Create())
+            {
+                byte[] inputBytes = System.Text.Encoding.ASCII.GetBytes(input);
+                byte[] hashBytes = md5.ComputeHash(inputBytes);
+
+                return Convert.ToHexString(hashBytes);
+            }
         }
     }
 }

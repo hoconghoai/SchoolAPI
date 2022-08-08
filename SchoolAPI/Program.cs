@@ -16,7 +16,7 @@ builder.Services.AddDbContext<SchoolContext>(options =>
 
 var scope = builder.Services.AddScoped<SchoolContext>();
 var context = scope.BuildServiceProvider().GetRequiredService<SchoolContext>();
-//DbInitializer.Initialize(context);
+DbInitializer.Initialize(context);
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
